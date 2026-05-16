@@ -23,14 +23,14 @@ export class ProjectDetector implements StageAdapter<void, ProjectProfile> {
 
     const profile: ProjectProfile = {
       type,
-      name: ctx.config.app.name || pkg?.name || 'app',
+      name: ctx.config.app.name || (typeof pkg?.name === 'string' ? pkg.name : 'app'),
       bundleId: ctx.config.app.bundleId,
       packageName: ctx.config.app.packageName,
       entryPoint: ctx.config.wrap.entryPoint,
       hasNativeModules,
       buildStrategy: hasNativeModules ? 'fastlane' : ctx.config.build.strategy === 'fastlane' ? 'fastlane' : 'eas',
       locales: ctx.config.app.locales,
-      version: pkg?.version ?? '1.0.0',
+      version: (typeof pkg?.version === 'string' ? pkg.version : '1.0.0'),
     }
 
     ctx.emit({ event: 'log', stage: 'detect', level: 'info', msg: `Detected: ${type}` })
