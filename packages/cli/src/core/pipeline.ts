@@ -28,6 +28,8 @@ export interface PipelineOptions {
   fromStage?: StageName
   skipStages?: StageName[]
   resume?: boolean
+  /** Override retry delay in ms (default 5000). Useful for tests. */
+  _retryDelayMs?: number
 }
 
 export async function runPipeline(
@@ -73,7 +75,12 @@ export async function runPipeline(
     await writeState(ctx.projectRoot, state)
 
     try {
-      const output = await runner.run(ctx)
+      const output = await withRetry(
+        () => runner.run(ctx),
+        3,
+        (err) => classifyError(err, stageName).class === 'retriable',
+        opts._retryDelayMs ?? 5000,
+      )
       const durationMs = Date.now() - stageStart
       state.stages[stageName] = {
         status: 'completed',
@@ -151,18 +158,29 @@ function classifyError(err: unknown, stage: StageName): ShipyardError {
 export async function withRetry<T>(
   fn: () => Promise<T>,
   maxAttempts = 3,
+  isRetriableOrDelay: ((err: unknown) => boolean) | number = 5000,
   baseDelayMs = 5000,
 ): Promise<T> {
+  // Resolve overloaded third argument
+  const isRetriable: (err: unknown) => boolean =
+    typeof isRetriableOrDelay === 'function'
+      ? isRetriableOrDelay
+      : (err) => {
+          const shipErr = err as ShipyardError
+          return shipErr.class === 'retriable'
+        }
+  const delayMs: number =
+    typeof isRetriableOrDelay === 'number' ? isRetriableOrDelay : baseDelayMs
+
   let lastErr: unknown
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn()
     } catch (err) {
       lastErr = err
-      const shipErr = err as ShipyardError
-      if (shipErr.class !== 'retriable') throw err
+      if (!isRetriable(err)) throw err
       if (attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** (attempt - 1)))
+        await new Promise((r) => setTimeout(r, delayMs * 2 ** (attempt - 1)))
       }
     }
   }

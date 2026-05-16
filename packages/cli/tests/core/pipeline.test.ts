@@ -77,6 +77,7 @@ describe('runPipeline', () => {
       runPipeline(
         [{ name: 'build' as StageName, run: async () => { throw new Error('eas timed out') } }],
         ctx,
+        { _retryDelayMs: 0 },
       )
     ).rejects.toThrow()
     expect(ctx.state.stages.build.status).toBe('failed')
@@ -157,6 +158,7 @@ describe('runPipeline', () => {
       runPipeline(
         [{ name: 'upload' as StageName, run: async () => { throw new Error('network error') } }],
         ctx,
+        { _retryDelayMs: 0 },
       )
     ).rejects.toThrow()
     const failed = events.find((e) => e.event === 'pipeline_failed') as Extract<PipelineEvent, { event: 'pipeline_failed' }>
@@ -172,10 +174,41 @@ describe('runPipeline', () => {
       runPipeline(
         [{ name: 'upload' as StageName, run: async () => { throw new Error('Missing required credential: SHIPYARD_ASC_KEY_ID') } }],
         ctx,
+        { _retryDelayMs: 0 },
       )
     ).rejects.toThrow()
     const failed = events.find((e) => e.event === 'pipeline_failed') as Extract<PipelineEvent, { event: 'pipeline_failed' }>
     expect(failed.class).toBe('credential')
+  })
+
+  it('retries a stage that throws a retriable error', async () => {
+    let calls = 0
+    const flakyStage = {
+      name: 'detect' as StageName,
+      run: vi.fn().mockImplementation(async () => {
+        calls++
+        if (calls < 3) throw new Error('network timeout')
+        return { type: 'web-react' }
+      }),
+    }
+    const ctx = makeCtx()
+    await runPipeline([flakyStage], ctx, { _retryDelayMs: 0 })
+    expect(calls).toBe(3)
+    expect(ctx.state.stages.detect.status).toBe('completed')
+  })
+
+  it('does not retry a hard-stop error', async () => {
+    let calls = 0
+    const hardStopStage = {
+      name: 'detect' as StageName,
+      run: vi.fn().mockImplementation(async () => {
+        calls++
+        throw new Error('first upload manually to App Store Connect')
+      }),
+    }
+    const ctx = makeCtx()
+    await expect(runPipeline([hardStopStage], ctx, { _retryDelayMs: 0 })).rejects.toThrow()
+    expect(calls).toBe(1)
   })
 })
 
