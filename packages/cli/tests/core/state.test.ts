@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mkdtempSync, rmSync } from 'fs'
+import { mkdtempSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { readState, writeState } from '../../src/core/state.js'
@@ -42,7 +42,6 @@ describe('writeState / readState', () => {
   it('creates .shipyard directory if it does not exist', async () => {
     const state = makeState()
     await writeState(tmpDir, state)
-    const { existsSync } = await import('fs')
     expect(existsSync(join(tmpDir, '.shipyard/state.json'))).toBe(true)
   })
 
