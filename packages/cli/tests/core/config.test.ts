@@ -76,6 +76,14 @@ describe('resolveCredential', () => {
 
   it('throws a credential-class error when env var is missing', () => {
     delete process.env.SHIPYARD_MISSING_KEY
-    expect(() => resolveCredential('SHIPYARD_MISSING_KEY')).toThrow('SHIPYARD_MISSING_KEY')
+    let caught: unknown
+    try {
+      resolveCredential('SHIPYARD_MISSING_KEY')
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeDefined()
+    expect((caught as Error).message).toContain('SHIPYARD_MISSING_KEY')
+    expect((caught as { class: string }).class).toBe('credential')
   })
 })
