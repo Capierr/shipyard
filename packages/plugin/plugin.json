@@ -1,0 +1,9 @@
+{
+  "name": "shipyard",
+  "version": "0.1.0",
+  "description": "Automated App Store + Google Play deployment. Wraps web/native apps, builds, screenshots, generates AI metadata, and submits — zero interaction after setup.",
+  "author": {
+    "name": "Capierr",
+    "email": "cpdavid.au@gmail.com"
+  }
+}

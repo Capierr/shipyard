@@ -1,0 +1,13 @@
+{
+  "hooks": [
+    {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool": "Bash",
+        "pattern": "git push.*(main|master)"
+      },
+      "type": "prompt",
+      "prompt": "The user just pushed to the main branch. Read .shipyard/config.yml in the current project directory. If the file exists and deploy.autoDeploy is true, invoke the deployment-pilot agent to run the full pipeline silently. If autoDeploy is false or the config file doesn't exist, do nothing."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+node_modules/
+dist/
+*.js.map
+.env
+.env.*
+!.env.example
+*.local
+
+# Shipyard runtime
+.shipyard/state.json
+.shipyard/screenshots/
+.shipyard/metadata/
+.shipyard/artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Credentials — never commit these
+*.p8
+*.keystore
+*.jks
+service-account*.json
+google-services*.json
