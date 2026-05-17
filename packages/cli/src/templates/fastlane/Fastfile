@@ -1,0 +1,45 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to App Store"
+  lane :release do
+    gym(
+      scheme: ENV["SHIPYARD_SCHEME"] || "App",
+      export_method: "app-store",
+      output_directory: ".shipyard/artifacts",
+      output_name: "app.ipa"
+    )
+    deliver(
+      metadata_path: ".shipyard/metadata/ios",
+      submit_for_review: false,
+      automatic_release: false,
+      skip_screenshots: true
+    )
+  end
+
+  desc "Capture iOS screenshots"
+  lane :screenshots do
+    snapshot
+  end
+end
+
+platform :android do
+  desc "Build and upload to Play Store"
+  lane :release do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android/"
+    )
+    supply(
+      track: ENV["SHIPYARD_ANDROID_TRACK"] || "internal",
+      metadata_path: ".shipyard/metadata/android",
+      aab: "android/app/build/outputs/bundle/release/app-release.aab"
+    )
+  end
+
+  desc "Capture Android screenshots"
+  lane :screenshots do
+    screengrab
+  end
+end

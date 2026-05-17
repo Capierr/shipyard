@@ -1,0 +1,5 @@
+# Snapfile
+devices(["iPhone 15 Pro", "iPhone 14", "iPad Pro (12.9-inch) (6th generation)"])
+languages(["en-US"])
+output_directory("fastlane/screenshots")
+clear_previous_screenshots(true)

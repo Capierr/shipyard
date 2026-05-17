@@ -1,0 +1,30 @@
+# .shipyard/config.yml
+app:
+  name: "My App"
+  bundleId: "com.example.myapp"
+  packageName: "com.example.myapp"
+  locales: ["en-US"]
+
+build:
+  strategy: eas       # eas | fastlane
+
+wrap:
+  entryPoint: "dist/index.html"
+
+metadata:
+  tone: professional  # professional | playful | technical | minimal
+  keywordsCount: 10
+  autoGenerate: true
+
+screenshots:
+  devices: []
+  frameStyle: minimal
+  captionStyle: feature-highlight
+
+deploy:
+  autoDeploy: false
+  trackAndroid: internal   # internal | alpha | beta | production
+  trackIos: testflight     # testflight | appstore
+
+credentials:
+  storage: env
